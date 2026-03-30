@@ -11,4 +11,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @NullMarked
     Optional<Category> findById(Long id);
+
+    boolean existsByNameAndIdNot(String name, Long id);
 }
+

@@ -3,7 +3,10 @@ package com.diego.lima.dev.startup.Exceptions;
 import com.diego.lima.dev.startup.Exceptions.Category.ConflictCategoryException;
 import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
 import com.diego.lima.dev.startup.Exceptions.Product.ConflictProductException;
+import com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException;
 import com.diego.lima.dev.startup.Exceptions.Response.ErrorApiResponse;
+import com.diego.lima.dev.startup.Exceptions.Stock.ConflictStockException;
+import com.diego.lima.dev.startup.Exceptions.Stock.NotFoundStockException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,42 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(NotFoundStockException.class)
+    public ResponseEntity<ErrorApiResponse> handlerNotFoundStockException(NotFoundStockException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorApiResponse(
+                        ex.getMessage(),
+                        404,
+                        request.getRequestURI(),
+                        LocalDateTime.now()
+                )
+        );
+    }
+
+    //Exception stock custom
+    @ExceptionHandler(ConflictStockException.class)
+    public ResponseEntity<ErrorApiResponse> handlerConflictStockException(ConflictStockException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorApiResponse(
+                        ex.getMessage(),
+                        409,
+                        request.getRequestURI(),
+                        LocalDateTime.now()
+                )
+        );
+    }
+
+    @ExceptionHandler(NotFoundProductException.class)
+    public ResponseEntity<ErrorApiResponse> handlerNotFoundException(NotFoundProductException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ErrorApiResponse(
+                        ex.getMessage(),
+                        404,
+                        request.getRequestURI(),
+                        LocalDateTime.now()
+                )
+        );
+    }
 
 
     @ExceptionHandler(ConflictProductException.class)

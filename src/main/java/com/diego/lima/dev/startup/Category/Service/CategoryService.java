@@ -7,64 +7,94 @@ import com.diego.lima.dev.startup.Category.Model.Category;
 import com.diego.lima.dev.startup.Category.Repository.CategoryRepository;
 import com.diego.lima.dev.startup.Exceptions.Category.ConflictCategoryException;
 import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
+import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
+import com.diego.lima.dev.startup.Product.Repository.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
     }
 
-    public CategoryResponse create(CreateCategoryDTO request) {
-
+    public CategoryResponse createCategory(CreateCategoryDTO request) {
 
         if (categoryRepository.existsByName(request.name())) {
             throw new ConflictCategoryException(String.format("Categoria: %s já existe", request.name()));
         }
 
-        Category category = new Category();
-        category.setName(request.name());
+        var categoryEntity = new Category();
+        categoryEntity.setName(request.name());
 
-        Category savedCategory = categoryRepository.save(category);
+        Category savedCategoryEntity = categoryRepository.save(categoryEntity);
 
-        return new CategoryResponse(savedCategory.getId(), savedCategory.getName());
+        return new CategoryResponse(savedCategoryEntity.getId(), savedCategoryEntity.getName());
     }
 
-    public Page<CategoryResponse> findAll(Pageable pageable) {
-        Page<Category> categories = categoryRepository.findAll(pageable);
-
-        return categories.map(category ->
-                new CategoryResponse(category.getId(), category.getName())
-        );
+    public List<CategoryResponse> findAllCategories() {
+        return categoryRepository.findAll()
+                .stream()
+                .map(category -> new CategoryResponse(category.getId(), category.getName()))
+                .toList();
     }
 
-    public void updateById(Long id, UpdateCategoryDTO request) {
+    public Page<ProductResponse> findProductsByCategory(Long categoryId, Pageable pageable) {
+        categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundCategoryException(
+                        String.format("A categoria do ID: %s não foi encontrada.", categoryId)
+                ));
 
-        var category = categoryRepository.findById(id)
+        return productRepository.findByCategoryId(categoryId, pageable)
+                .map(product -> new ProductResponse(
+                        product.getId(),
+                        product.getName(),
+                        product.getSalePrice(),
+                        product.getCategory().getName()
+                ));
+    }
+
+    public void updateCategory(Long categoryId, UpdateCategoryDTO request) {
+
+        var categoryEntity = categoryRepository.findById(categoryId)
                 .orElseThrow(() ->
                         new NotFoundCategoryException(
-                                String.format("A categoria do ID: %s não foi encontrado.", id)
+                                String.format("A categoria do ID: %s não foi encontrado.", categoryId)
                         )
                 );
 
         if (request.name() != null && !request.name().isBlank()) {
-            category.setName(request.name());
+            String newName = request.name().trim();
+
+            boolean categoryNameExists =
+                    categoryRepository.existsByNameAndIdNot(newName, categoryId);
+
+            if (categoryNameExists) {
+                throw new ConflictCategoryException(
+                        String.format("Categoria com nome %s já existe", newName)
+                );
+            }
+
+            categoryEntity.setName(request.name());
         }
 
-        categoryRepository.save(category);
+        categoryRepository.save(categoryEntity);
     }
 
-    public void deleteById(Long id) {
+    public void deleteCategory(Long categoryId) {
 
-        var category = categoryRepository.findById(id)
+        var category = categoryRepository.findById(categoryId)
                 .orElseThrow(() ->
                         new NotFoundCategoryException(
-                                String.format("A categoria do ID: %s não foi encontrado.", id)
+                                String.format("A categoria do ID: %s não foi encontrado.", categoryId)
                         )
                 );
 

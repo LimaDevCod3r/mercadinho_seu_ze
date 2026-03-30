@@ -1,11 +1,11 @@
 package com.diego.lima.dev.startup.Category.Controller;
 
-
 import com.diego.lima.dev.startup.Category.Dtos.Request.CreateCategoryDTO;
 import com.diego.lima.dev.startup.Category.Dtos.Request.UpdateCategoryDTO;
 import com.diego.lima.dev.startup.Category.Dtos.Response.CategoryResponse;
 import com.diego.lima.dev.startup.Category.Service.CategoryService;
 import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
+import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,6 +23,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -50,12 +51,12 @@ public class CategoryControllerTest {
     @Nested
     class CreateCategoryTests {
         @Test
-        @DisplayName("POST /categorias - deve retornar 201 com a categoria criada")
+        @DisplayName("POST /categories - deve retornar 201 com a categoria criada")
         void shouldReturn201WhenCategoryIsCreated() throws Exception {
             var request = new CreateCategoryDTO("Bebidas");
             var response = new CategoryResponse(1L, "Bebidas");
 
-            when(categoryService.create(any(CreateCategoryDTO.class))).thenReturn(response);
+            when(categoryService.createCategory(any(CreateCategoryDTO.class))).thenReturn(response);
 
             mockMvc.perform(post("/categories")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +67,7 @@ public class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("POST /categorias - deve retornar 400 quando o campo da requisição for inválido")
+        @DisplayName("POST /categories - deve retornar 400 quando o campo da requisição for inválido")
         void shouldReturn400WhenFieldToBodyIsInvalid() throws Exception {
 
             String invalidJson = """
@@ -89,45 +90,75 @@ public class CategoryControllerTest {
     class FindAllCategoryTest {
 
         @Test
-        @DisplayName("GET /categorias - deve retornar 200 com uma lista de categorias")
+        @DisplayName("GET /categories - deve retornar 200 com array de categorias")
         void shouldReturn200WhenListingAllCategories() throws Exception {
             List<CategoryResponse> categories = List.of(
                     new CategoryResponse(1L, "Bebidas"),
                     new CategoryResponse(2L, "Comidas")
             );
 
-            Page<CategoryResponse> page = new PageImpl<>(categories);
+            when(categoryService.findAll()).thenReturn(categories);
 
-            when(categoryService.findAll(any(Pageable.class))).thenReturn(page);
-
-            // 4. Executando requisição
-            mockMvc.perform(get("/categories")
-                            .param("page", "0")
-                            .param("size", "10"))
+            mockMvc.perform(get("/categories"))
                     .andExpect(status().isOk())
-
-                    // 5. Validando JSON
-                    .andExpect(jsonPath("$.content[0].name").value("Bebidas"))
-                    .andExpect(jsonPath("$.content[1].name").value("Comidas"))
-                    .andExpect(jsonPath("$.content.length()").value(2));
+                    .andExpect(jsonPath("$[0].name").value("Bebidas"))
+                    .andExpect(jsonPath("$[1].name").value("Comidas"))
+                    .andExpect(jsonPath("$.length()").value(2));
         }
 
         @Test
-        @DisplayName("GET /categorias - deve retornar 200 com uma lista de categorias vazias")
+        @DisplayName("GET /categories - deve retornar 200 com lista vazia")
         void shouldReturn200WhenListingAllCategoriesIsEmpty() throws Exception {
+            when(categoryService.findAll()).thenReturn(List.of());
 
-            List<CategoryResponse> categories = List.of();
-
-            Page<CategoryResponse> page = new PageImpl<>(categories);
-
-            when(categoryService.findAll(any(Pageable.class))).thenReturn(page);
-
-            mockMvc.perform(get("/categories")
-                            .param("page", "0")
-                            .param("size", "10"))
+            mockMvc.perform(get("/categories"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.content.length()").value(0));
+                    .andExpect(jsonPath("$.length()").value(0));
+        }
+    }
 
+    @Nested
+    class FindProductsByCategoryIdTest {
+
+        @Test
+        @DisplayName("GET /categories/{id}/products - deve retornar 200 com produtos paginados")
+        void shouldReturn200WithPaginatedProducts() throws Exception {
+            Long categoryId = 1L;
+            List<ProductResponse> products = List.of(
+                    new ProductResponse(10L, "Coca-Cola", new BigDecimal("5.50"), "Bebidas")
+            );
+            Page<ProductResponse> page = new PageImpl<>(products);
+
+            when(categoryService.findProductsByCategoryId(eq(categoryId), any(Pageable.class)))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/categories/{id}/products", categoryId)
+                            .param("page", "0")
+                            .param("size", "5"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].name").value("Coca-Cola"))
+                    .andExpect(jsonPath("$.content[0].salePrice").value(5.50))
+                    .andExpect(jsonPath("$.content[0].category").value("Bebidas"))
+                    .andExpect(jsonPath("$.content.length()").value(1));
+        }
+
+        @Test
+        @DisplayName("GET /categories/{id}/products - deve retornar 404 quando categoria não existir")
+        void shouldReturn404WhenCategoryNotFound() throws Exception {
+            Long categoryId = 99L;
+
+            when(categoryService.findProductsByCategoryId(eq(categoryId), any(Pageable.class)))
+                    .thenThrow(new NotFoundCategoryException(
+                            String.format("A categoria do ID: %s não foi encontrada.", categoryId)
+                    ));
+
+            mockMvc.perform(get("/categories/{id}/products", categoryId)
+                            .param("page", "0")
+                            .param("size", "5"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404))
+                    .andExpect(jsonPath("$.error").exists())
+                    .andExpect(jsonPath("$.path").value("/categories/" + categoryId + "/products"));
         }
     }
 
@@ -135,8 +166,8 @@ public class CategoryControllerTest {
     class UpdateCategoryById {
 
         @Test
-        @DisplayName("PATCH /categorias - Deve retorna 204 quando atualizar uma categoria")
-        void shouldRetorn204WhenUpdatingCategory() throws Exception {
+        @DisplayName("PATCH /categories/{id} - deve retornar 204 quando atualizar uma categoria")
+        void shouldReturn204WhenUpdatingCategory() throws Exception {
             Long id = 1L;
 
             String json = """
@@ -153,7 +184,7 @@ public class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("PATCH /categories - Deve retornar 404 quando não encontrar categoria")
+        @DisplayName("PATCH /categories/{id} - deve retornar 404 quando não encontrar categoria")
         void shouldReturn404WhenNotFoundIdCategory() throws Exception {
 
             Long id = 1L;
@@ -178,7 +209,7 @@ public class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("Deve retorna 400 quando id é inválido")
+        @DisplayName("PATCH /categories/abc - deve retornar 400 quando id for inválido")
         void shouldReturn400WhenIdIsInvalid() throws Exception {
 
             mockMvc.perform(patch("/categories/abc")
@@ -198,7 +229,7 @@ public class CategoryControllerTest {
     class DeleteCategoryById {
 
         @Test
-        @DisplayName("Deve retorna 202 quando deleta uma categoria por Id for um sucesso")
+        @DisplayName("DELETE /categories/{id} - deve retornar 204 quando deletar categoria com sucesso")
         void shouldReturn204WhenDeleteCategoryWasSuccessful() throws Exception {
 
             Long id = 1L;
@@ -209,7 +240,7 @@ public class CategoryControllerTest {
         }
 
         @Test
-        @DisplayName("Deve retorna 404 quando categoria não encontrada.")
+        @DisplayName("DELETE /categories/{id} - deve retornar 404 quando categoria não encontrada")
         void shouldReturn404WhenCategoryNotFound() throws Exception {
 
             Long id = 1L;
