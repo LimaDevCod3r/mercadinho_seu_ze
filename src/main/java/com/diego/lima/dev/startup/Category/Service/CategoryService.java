@@ -58,7 +58,8 @@ public class CategoryService {
                         product.getId(),
                         product.getName(),
                         product.getSalePrice(),
-                        product.getCategory().getName()
+                        product.getCategory().getName(),
+                        product.getCategory().getId()
                 ));
     }
 

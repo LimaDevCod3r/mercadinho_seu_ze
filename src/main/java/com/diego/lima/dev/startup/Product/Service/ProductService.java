@@ -9,19 +9,28 @@ import com.diego.lima.dev.startup.Product.Dtos.Request.UpdateProductDTO;
 import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
 import com.diego.lima.dev.startup.Product.Model.Product;
 import com.diego.lima.dev.startup.Product.Repository.ProductRepository;
+import com.diego.lima.dev.startup.Stock.Repository.StockRepository;
+import com.diego.lima.dev.startup.StockMovement.Model.StockMovement;
+import com.diego.lima.dev.startup.StockMovement.Repository.StockMovementRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final StockRepository stockRepository;
+    private final StockMovementRepository stockMovementRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, StockRepository stockRepository, StockMovementRepository stockMovementRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.stockRepository = stockRepository;
+        this.stockMovementRepository = stockMovementRepository;
     }
 
     public ProductResponse createProduct(CreateProductDTO request) {
@@ -47,7 +56,8 @@ public class ProductService {
                 savedProductEntity.getId(),
                 savedProductEntity.getName(),
                 savedProductEntity.getSalePrice(),
-                savedProductEntity.getCategory().getName()
+                savedProductEntity.getCategory().getName(),
+                savedProductEntity.getCategory().getId()
         );
     }
 
@@ -60,7 +70,8 @@ public class ProductService {
                         productEntity.getId(),
                         productEntity.getName()
                         , productEntity.getSalePrice(),
-                        productEntity.getCategory().getName()
+                        productEntity.getCategory().getName(),
+                        productEntity.getCategory().getId()
                 )
         );
     }
@@ -78,7 +89,8 @@ public class ProductService {
                 productEntity.getId(),
                 productEntity.getName(),
                 productEntity.getSalePrice(),
-                productEntity.getCategory().getName());
+                productEntity.getCategory().getName(),
+                productEntity.getCategory().getId());
 
     }
 
@@ -128,9 +140,14 @@ public class ProductService {
                 String.format("Produto com id %d não encontrado", productId)
         ));
 
+        List<StockMovement> movements = stockMovementRepository.findByProduct(productEntity);
+        if (!movements.isEmpty()) {
+            stockMovementRepository.deleteAll(movements);
+        }
+        stockRepository.findByProduct(productEntity).ifPresent(stock -> stockRepository.delete(stock));
+
         productRepository.delete(productEntity);
     }
 
 
 }
-

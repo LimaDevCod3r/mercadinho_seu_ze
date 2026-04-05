@@ -56,7 +56,7 @@ class CategoryServiceTest {
 
             when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
 
-            CategoryResponse result = service.create(dto);
+            CategoryResponse result = service.createCategory(dto);
 
             assertNotNull(result);
             assertEquals("Bebidas", result.name());
@@ -72,7 +72,7 @@ class CategoryServiceTest {
 
             ConflictCategoryException exception = assertThrows(
                     ConflictCategoryException.class,
-                    () -> service.create(dto)
+                    () -> service.createCategory(dto)
             );
 
             assertEquals(
@@ -94,7 +94,7 @@ class CategoryServiceTest {
 
             when(categoryRepository.findAll()).thenReturn(List.of(category1, category2));
 
-            List<CategoryResponse> result = service.findAll();
+            List<CategoryResponse> result = service.findAllCategories();
 
             assertNotNull(result);
             assertEquals(2, result.size());
@@ -108,7 +108,7 @@ class CategoryServiceTest {
         void shouldReturnEmptyListWhenNoCategories() {
             when(categoryRepository.findAll()).thenReturn(List.of());
 
-            List<CategoryResponse> result = service.findAll();
+            List<CategoryResponse> result = service.findAllCategories();
 
             assertNotNull(result);
             assertTrue(result.isEmpty());
@@ -138,7 +138,7 @@ class CategoryServiceTest {
             when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
             when(productRepository.findByCategoryId(categoryId, pageable)).thenReturn(productPage);
 
-            Page<ProductResponse> result = service.findProductsByCategoryId(categoryId, pageable);
+            Page<ProductResponse> result = service.findProductsByCategory(categoryId, pageable);
 
             assertNotNull(result);
             assertEquals(1, result.getContent().size());
@@ -158,7 +158,7 @@ class CategoryServiceTest {
 
             NotFoundCategoryException exception = assertThrows(
                     NotFoundCategoryException.class,
-                    () -> service.findProductsByCategoryId(categoryId, pageable)
+                    () -> service.findProductsByCategory(categoryId, pageable)
             );
 
             assertEquals(
@@ -181,7 +181,7 @@ class CategoryServiceTest {
 
             when(categoryRepository.findById(id)).thenReturn(Optional.of(category));
 
-            service.updateById(id, request);
+            service.updateCategory(id, request);
 
             assertEquals("Comidas", category.getName());
             verify(categoryRepository).save(category);
@@ -196,7 +196,7 @@ class CategoryServiceTest {
 
             NotFoundCategoryException exception = assertThrows(
                     NotFoundCategoryException.class,
-                    () -> service.updateById(id, request)
+                    () -> service.updateCategory(id, request)
             );
 
             assertEquals(
@@ -218,7 +218,7 @@ class CategoryServiceTest {
 
             when(categoryRepository.findById(id)).thenReturn(Optional.of(category));
 
-            service.deleteById(id);
+            service.deleteCategory(id);
 
             verify(categoryRepository).deleteById(id);
         }
@@ -230,7 +230,7 @@ class CategoryServiceTest {
 
             NotFoundCategoryException exception = assertThrows(
                     NotFoundCategoryException.class,
-                    () -> service.deleteById(id)
+                    () -> service.deleteCategory(id)
             );
 
             assertEquals(

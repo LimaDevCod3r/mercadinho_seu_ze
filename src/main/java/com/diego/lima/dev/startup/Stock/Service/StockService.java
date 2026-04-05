@@ -46,7 +46,8 @@ public class StockService {
                 stockEntity.getProduct().getId(),
                 stockEntity.getProduct().getName(),
                 stockEntity.getProduct().getSalePrice(),
-                stockEntity.getProduct().getCategory().getName()
+                stockEntity.getProduct().getCategory().getName(),
+                stockEntity.getProduct().getCategory().getId()
         );
 
         return new StockResponse(
@@ -68,7 +69,8 @@ public class StockService {
                 stockEntity.getProduct().getId(),
                 stockEntity.getProduct().getName(),
                 stockEntity.getProduct().getSalePrice(),
-                stockEntity.getProduct().getCategory().getName()
+                stockEntity.getProduct().getCategory().getName(),
+                stockEntity.getProduct().getCategory().getId()
         );
 
         return new StockResponse(stockEntity.getId(), product, stockEntity.getQuantity());
@@ -84,7 +86,8 @@ public class StockService {
                     stockEntity.getProduct().getId(),
                     stockEntity.getProduct().getName(),
                     stockEntity.getProduct().getSalePrice(),
-                    stockEntity.getProduct().getCategory().getName()
+                    stockEntity.getProduct().getCategory().getName(),
+                    stockEntity.getProduct().getCategory().getId()
             );
 
             return new StockResponse(
@@ -107,7 +110,8 @@ public class StockService {
                 stockEntity.getProduct().getId(),
                 stockEntity.getProduct().getName(),
                 stockEntity.getProduct().getSalePrice(),
-                stockEntity.getProduct().getCategory().getName()
+                stockEntity.getProduct().getCategory().getName(),
+                stockEntity.getProduct().getCategory().getId()
         );
 
         return new StockResponse(
