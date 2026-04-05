@@ -1,9 +1,6 @@
 package com.diego.lima.dev.startup.Stock.Service;
 
 import com.diego.lima.dev.startup.Category.Model.Category;
-import com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException;
-import com.diego.lima.dev.startup.Exceptions.Stock.ConflictStockException;
-import com.diego.lima.dev.startup.Exceptions.Stock.NotFoundStockException;
 import com.diego.lima.dev.startup.Product.Model.Product;
 import com.diego.lima.dev.startup.Product.Repository.ProductRepository;
 import com.diego.lima.dev.startup.Stock.Dto.Request.CreateStockDTO;
@@ -26,6 +23,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
+import com.diego.lima.dev.startup.Exceptions.EntityConflictException;
 
 class StockServiceTest {
 
@@ -80,8 +79,8 @@ class StockServiceTest {
 
             when(stockRepository.existsByProductId(1L)).thenReturn(true);
 
-            ConflictStockException exception = assertThrows(
-                    ConflictStockException.class,
+            EntityConflictException exception = assertThrows(
+                    EntityConflictException.class,
                     () -> stockService.createStock(request)
             );
 
@@ -96,8 +95,8 @@ class StockServiceTest {
             when(stockRepository.existsByProductId(99L)).thenReturn(false);
             when(productRepository.findById(99L)).thenReturn(Optional.empty());
 
-            NotFoundProductException exception = assertThrows(
-                    NotFoundProductException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> stockService.createStock(request)
             );
 
@@ -136,8 +135,8 @@ class StockServiceTest {
         void shouldThrowNotFoundWhenStockDoesNotExist() {
             when(stockRepository.findById(99L)).thenReturn(Optional.empty());
 
-            NotFoundStockException exception = assertThrows(
-                    NotFoundStockException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> stockService.findStockById(99L)
             );
 
@@ -214,8 +213,8 @@ class StockServiceTest {
         void shouldThrowNotFoundWhenStockByProductIdDoesNotExist() {
             when(stockRepository.findByProductId(99L)).thenReturn(Optional.empty());
 
-            NotFoundStockException exception = assertThrows(
-                    NotFoundStockException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> stockService.findStockByProductId(99L)
             );
 

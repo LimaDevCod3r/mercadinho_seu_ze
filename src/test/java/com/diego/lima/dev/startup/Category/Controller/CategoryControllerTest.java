@@ -4,15 +4,11 @@ import com.diego.lima.dev.startup.Category.Dtos.Request.CreateCategoryDTO;
 import com.diego.lima.dev.startup.Category.Dtos.Request.UpdateCategoryDTO;
 import com.diego.lima.dev.startup.Category.Dtos.Response.CategoryResponse;
 import com.diego.lima.dev.startup.Category.Service.CategoryService;
-import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
@@ -26,13 +22,12 @@ import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @WebMvcTest(CategoryController.class)
@@ -146,7 +141,7 @@ public class CategoryControllerTest {
             Long categoryId = 99L;
 
             when(categoryService.findProductsByCategory(eq(categoryId), any(Pageable.class)))
-                    .thenThrow(new NotFoundCategoryException(
+                    .thenThrow(new EntityNotFoundException(
                             String.format("A categoria do ID: %s não foi encontrada.", categoryId)
                     ));
 
@@ -193,7 +188,7 @@ public class CategoryControllerTest {
                         }
                     """;
 
-            doThrow(new NotFoundCategoryException(
+            doThrow(new EntityNotFoundException(
                     String.format("ID: %s não foi encontrado.", id)
             )).when(categoryService).updateCategory(eq(id), any(UpdateCategoryDTO.class));
 
@@ -243,7 +238,7 @@ public class CategoryControllerTest {
 
             Long id = 1L;
 
-            doThrow(new NotFoundCategoryException(
+            doThrow(new EntityNotFoundException(
                     String.format("ID: %s não foi encontrado.", id)
             )).when(categoryService).deleteCategory(id);
 

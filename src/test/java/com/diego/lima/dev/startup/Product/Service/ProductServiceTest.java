@@ -2,9 +2,6 @@ package com.diego.lima.dev.startup.Product.Service;
 
 import com.diego.lima.dev.startup.Category.Model.Category;
 import com.diego.lima.dev.startup.Category.Repository.CategoryRepository;
-import com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException;
-import com.diego.lima.dev.startup.Exceptions.Product.ConflictProductException;
-import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
 import com.diego.lima.dev.startup.Product.Dtos.Request.CreateProductDTO;
 import com.diego.lima.dev.startup.Product.Dtos.Request.UpdateProductDTO;
 import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
@@ -31,6 +28,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
+import com.diego.lima.dev.startup.Exceptions.EntityConflictException;
 
 public class ProductServiceTest {
 
@@ -85,14 +84,14 @@ public class ProductServiceTest {
 
 
         @Test
-        void shouldReturnConflictProductException() {
+        void shouldReturnEntityConflictException() {
             var categoryId = 1L;
             CreateProductDTO dto = new CreateProductDTO("Coca-cola", BigDecimal.valueOf(8.50), categoryId);
 
             when(productRepository.existsByName("Coca-cola")).thenReturn(true);
 
-            ConflictProductException exception = assertThrows(
-                    ConflictProductException.class,
+            EntityConflictException exception = assertThrows(
+                    EntityConflictException.class,
                     () -> productService.createProduct(dto)
             );
 
@@ -103,15 +102,15 @@ public class ProductServiceTest {
         }
 
         @Test
-        void shouldReturnNotFoundCategoryException() {
+        void shouldReturnEntityNotFoundException() {
             var categoryId = 1L;
             CreateProductDTO dto = new CreateProductDTO("Coca-cola", BigDecimal.valueOf(8.50), categoryId);
 
             when(productRepository.existsByName("Coca-cola")).thenReturn(false);
             when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
 
-            NotFoundCategoryException exception = assertThrows(
-                    NotFoundCategoryException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> productService.createProduct(dto)
             );
 
@@ -188,11 +187,11 @@ public class ProductServiceTest {
         }
 
         @Test
-        void shouldThrowNotFoundProductExceptionWhenDeletingNonExistentProduct() {
+        void shouldThrowEntityNotFoundExceptionWhenDeletingNonExistentProduct() {
             when(productRepository.findById(1L)).thenReturn(Optional.empty());
 
-            NotFoundProductException exception = assertThrows(
-                    NotFoundProductException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> productService.deleteProduct(1L)
             );
 
@@ -274,12 +273,12 @@ public class ProductServiceTest {
         }
 
         @Test
-        void shouldThrowNotFoundProductExceptionWhenProductDoesNotExist() {
+        void shouldThrowEntityNotFoundExceptionWhenProductDoesNotExist() {
             Long productId = 99L;
             when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
-            NotFoundProductException exception = assertThrows(
-                    NotFoundProductException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> productService.findProductById(productId)
             );
 
@@ -378,12 +377,12 @@ public class ProductServiceTest {
         }
 
         @Test
-        void shouldThrowNotFoundProductExceptionWhenUpdatingNonExistentProduct() {
+        void shouldThrowEntityNotFoundExceptionWhenUpdatingNonExistentProduct() {
             when(productRepository.findById(1L)).thenReturn(Optional.empty());
             var request = new UpdateProductDTO("Test", BigDecimal.valueOf(1.00), 1L);
 
-            NotFoundProductException exception = assertThrows(
-                    NotFoundProductException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> productService.updateProduct(1L, request)
             );
 
@@ -392,7 +391,7 @@ public class ProductServiceTest {
         }
 
         @Test
-        void shouldThrowConflictProductExceptionWhenNameAlreadyExists() {
+        void shouldThrowEntityConflictExceptionWhenNameAlreadyExists() {
             var category = new Category(1L, "Bebidas");
             var product = new Product();
             product.setId(1L);
@@ -405,8 +404,8 @@ public class ProductServiceTest {
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
             when(productRepository.existsByNameAndIdNot("Guarana", 1L)).thenReturn(true);
 
-            ConflictProductException exception = assertThrows(
-                    ConflictProductException.class,
+            EntityConflictException exception = assertThrows(
+                    EntityConflictException.class,
                     () -> productService.updateProduct(1L, request)
             );
 
@@ -415,7 +414,7 @@ public class ProductServiceTest {
         }
 
         @Test
-        void shouldThrowNotFoundCategoryExceptionWhenNewCategoryDoesNotExist() {
+        void shouldThrowEntityNotFoundExceptionWhenNewCategoryDoesNotExist() {
             var category = new Category(1L, "Bebidas");
             var product = new Product();
             product.setId(1L);
@@ -428,8 +427,8 @@ public class ProductServiceTest {
             when(productRepository.findById(1L)).thenReturn(Optional.of(product));
             when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
 
-            NotFoundCategoryException exception = assertThrows(
-                    NotFoundCategoryException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> productService.updateProduct(1L, request)
             );
 

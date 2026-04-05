@@ -5,8 +5,8 @@ import com.diego.lima.dev.startup.Category.Dtos.Request.UpdateCategoryDTO;
 import com.diego.lima.dev.startup.Category.Dtos.Response.CategoryResponse;
 import com.diego.lima.dev.startup.Category.Model.Category;
 import com.diego.lima.dev.startup.Category.Repository.CategoryRepository;
-import com.diego.lima.dev.startup.Exceptions.Category.ConflictCategoryException;
-import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
+import com.diego.lima.dev.startup.Exceptions.EntityConflictException;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
 import com.diego.lima.dev.startup.Product.Model.Product;
 import com.diego.lima.dev.startup.Product.Repository.ProductRepository;
@@ -70,8 +70,8 @@ class CategoryServiceTest {
 
             when(categoryRepository.existsByName("Bebidas")).thenReturn(true);
 
-            ConflictCategoryException exception = assertThrows(
-                    ConflictCategoryException.class,
+            EntityConflictException exception = assertThrows(
+                    EntityConflictException.class,
                     () -> service.createCategory(dto)
             );
 
@@ -156,8 +156,8 @@ class CategoryServiceTest {
 
             when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
 
-            NotFoundCategoryException exception = assertThrows(
-                    NotFoundCategoryException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> service.findProductsByCategory(categoryId, pageable)
             );
 
@@ -188,14 +188,14 @@ class CategoryServiceTest {
         }
 
         @Test
-        void shouldThrowNotFoundCategoryExceptionWhenIdIsNotFound() {
+        void shouldThrowEntityNotFoundExceptionWhenIdIsNotFound() {
             Long id = 1L;
             UpdateCategoryDTO request = new UpdateCategoryDTO("Comidas");
 
             when(categoryRepository.findById(id)).thenReturn(Optional.empty());
 
-            NotFoundCategoryException exception = assertThrows(
-                    NotFoundCategoryException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> service.updateCategory(id, request)
             );
 
@@ -228,8 +228,8 @@ class CategoryServiceTest {
             Long id = 1L;
             when(categoryRepository.findById(id)).thenReturn(Optional.empty());
 
-            NotFoundCategoryException exception = assertThrows(
-                    NotFoundCategoryException.class,
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
                     () -> service.deleteCategory(id)
             );
 

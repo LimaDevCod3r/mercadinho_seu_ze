@@ -1,9 +1,8 @@
 package com.diego.lima.dev.startup.Product.Service;
 
 import com.diego.lima.dev.startup.Category.Repository.CategoryRepository;
-import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
-import com.diego.lima.dev.startup.Exceptions.Product.ConflictProductException;
-import com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException;
+import com.diego.lima.dev.startup.Exceptions.EntityConflictException;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 import com.diego.lima.dev.startup.Product.Dtos.Request.CreateProductDTO;
 import com.diego.lima.dev.startup.Product.Dtos.Request.UpdateProductDTO;
 import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
@@ -36,11 +35,11 @@ public class ProductService {
     public ProductResponse createProduct(CreateProductDTO request) {
 
         if (productRepository.existsByName(request.name().trim())) {
-            throw new ConflictProductException(String.format("Produto com nome %s já existe", request.name()));
+            throw new EntityConflictException(String.format("Produto com nome %s já existe", request.name()));
         }
 
         var categoryEntity = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new NotFoundCategoryException(
+                .orElseThrow(() -> new EntityNotFoundException(
                         String.format("Categoria com id %d não encontrada", request.categoryId())
                 ));
 
@@ -80,7 +79,7 @@ public class ProductService {
 
         var productEntity = productRepository.findById(productId)
                 .orElseThrow(() ->
-                        new NotFoundProductException(
+                        new EntityNotFoundException(
                                 String.format("Produto com id %d não encontrado", productId)
                         )
                 );
@@ -98,7 +97,7 @@ public class ProductService {
         // Verifica se o produto existe pelo ID
         var product = productRepository.findById(productId)
                 .orElseThrow(() ->
-                        new NotFoundProductException(
+                        new EntityNotFoundException(
                                 String.format("Produto com id %d não encontrado", productId)
                         )
                 );
@@ -110,7 +109,7 @@ public class ProductService {
                     .existsByNameAndIdNot(request.name(), productId);
 
             if (productNameExists) {
-                throw new ConflictProductException("Já existe um produto com esse nome");
+                throw new EntityConflictException("Já existe um produto com esse nome");
             }
             product.setName(request.name());
         }
@@ -124,7 +123,7 @@ public class ProductService {
         if (request.categoryId() != null) {
             var categoryEntity = categoryRepository.findById(request.categoryId())
                     .orElseThrow(() ->
-                            new NotFoundCategoryException(
+                            new EntityNotFoundException(
                                     String.format("Categoria com id %d não encontrada", request.categoryId()
                                     )));
 
@@ -136,7 +135,7 @@ public class ProductService {
 
 
     public void deleteProduct(Long productId) {
-        var productEntity = productRepository.findById(productId).orElseThrow(() -> new NotFoundProductException(
+        var productEntity = productRepository.findById(productId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Produto com id %d não encontrado", productId)
         ));
 

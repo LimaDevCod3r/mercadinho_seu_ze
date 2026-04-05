@@ -5,8 +5,8 @@ import com.diego.lima.dev.startup.Category.Dtos.Request.UpdateCategoryDTO;
 import com.diego.lima.dev.startup.Category.Dtos.Response.CategoryResponse;
 import com.diego.lima.dev.startup.Category.Model.Category;
 import com.diego.lima.dev.startup.Category.Repository.CategoryRepository;
-import com.diego.lima.dev.startup.Exceptions.Category.ConflictCategoryException;
-import com.diego.lima.dev.startup.Exceptions.Category.NotFoundCategoryException;
+import com.diego.lima.dev.startup.Exceptions.EntityConflictException;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
 import com.diego.lima.dev.startup.Product.Repository.ProductRepository;
 import org.springframework.data.domain.Page;
@@ -29,7 +29,7 @@ public class CategoryService {
     public CategoryResponse createCategory(CreateCategoryDTO request) {
 
         if (categoryRepository.existsByName(request.name())) {
-            throw new ConflictCategoryException(String.format("Categoria: %s já existe", request.name()));
+            throw new EntityConflictException(String.format("Categoria: %s já existe", request.name()));
         }
 
         var categoryEntity = new Category();
@@ -49,7 +49,7 @@ public class CategoryService {
 
     public Page<ProductResponse> findProductsByCategory(Long categoryId, Pageable pageable) {
         categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundCategoryException(
+                .orElseThrow(() -> new EntityNotFoundException(
                         String.format("A categoria do ID: %s não foi encontrada.", categoryId)
                 ));
 
@@ -67,7 +67,7 @@ public class CategoryService {
 
         var categoryEntity = categoryRepository.findById(categoryId)
                 .orElseThrow(() ->
-                        new NotFoundCategoryException(
+                        new EntityNotFoundException(
                                 String.format("A categoria do ID: %s não foi encontrado.", categoryId)
                         )
                 );
@@ -79,7 +79,7 @@ public class CategoryService {
                     categoryRepository.existsByNameAndIdNot(newName, categoryId);
 
             if (categoryNameExists) {
-                throw new ConflictCategoryException(
+                throw new EntityConflictException(
                         String.format("Categoria com nome %s já existe", newName)
                 );
             }
@@ -94,7 +94,7 @@ public class CategoryService {
 
         var category = categoryRepository.findById(categoryId)
                 .orElseThrow(() ->
-                        new NotFoundCategoryException(
+                        new EntityNotFoundException(
                                 String.format("A categoria do ID: %s não foi encontrado.", categoryId)
                         )
                 );

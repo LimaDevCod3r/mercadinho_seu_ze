@@ -1,8 +1,7 @@
 package com.diego.lima.dev.startup.Stock.Service;
 
-import com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException;
-import com.diego.lima.dev.startup.Exceptions.Stock.ConflictStockException;
-import com.diego.lima.dev.startup.Exceptions.Stock.NotFoundStockException;
+import com.diego.lima.dev.startup.Exceptions.EntityConflictException;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 import com.diego.lima.dev.startup.Product.Dtos.Response.ProductResponse;
 import com.diego.lima.dev.startup.Product.Repository.ProductRepository;
 import com.diego.lima.dev.startup.Stock.Dto.Request.CreateStockDTO;
@@ -26,12 +25,12 @@ public class StockService {
     public StockResponse createStock(CreateStockDTO request) {
 
         if (stockRepository.existsByProductId(request.productId())) {
-            throw new ConflictStockException("O estoque deste produto já foi criado. Para adicionar mais quantidade, utilize a movimentação de entrada.");
+            throw new EntityConflictException("O estoque deste produto já foi criado. Para adicionar mais quantidade, utilize a movimentação de entrada.");
         }
 
         var productEntity = productRepository.findById(request.productId())
                 .orElseThrow(() ->
-                        new NotFoundProductException(
+                        new EntityNotFoundException(
                                 String.format("Produto com id %s não foi encontrado", request.productId())
                         )
                 );
@@ -62,7 +61,7 @@ public class StockService {
 
         var stockEntity = stockRepository.findById(stockId)
                 .orElseThrow(
-                        () -> new NotFoundStockException(String.format("Estoque do id: %d não encontrado", stockId)));
+                        () -> new EntityNotFoundException(String.format("Estoque do id: %d não encontrado", stockId)));
 
 
         var product = new ProductResponse(
@@ -101,7 +100,7 @@ public class StockService {
     public StockResponse findStockByProductId(Long productId) {
         var stockEntity = stockRepository.findByProductId(productId)
                 .orElseThrow(() ->
-                        new NotFoundStockException(
+                        new EntityNotFoundException(
                                 String.format("Estoque do produto id: %d não encontrado", productId)
                         )
                 );

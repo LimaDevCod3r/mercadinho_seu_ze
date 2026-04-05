@@ -1,8 +1,7 @@
 package com.diego.lima.dev.startup.StockMovement.Service;
 
-import com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException;
-import com.diego.lima.dev.startup.Exceptions.Stock.ConflictStockException;
-import com.diego.lima.dev.startup.Exceptions.Stock.NotFoundStockException;
+import com.diego.lima.dev.startup.Exceptions.EntityConflictException;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 import com.diego.lima.dev.startup.Product.Repository.ProductRepository;
 import com.diego.lima.dev.startup.Stock.Repository.StockRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,11 +31,11 @@ public class StockMovementService {
 
         var productEntity = productRepository.findById(request.productId())
                 .orElseThrow(() ->
-                        new NotFoundProductException(String.format("Produto com id %s não encontrado", request.productId()))
+                        new EntityNotFoundException(String.format("Produto com id %s não encontrado", request.productId()))
                 );
 
         var stockEntity = stockRepository.findByProduct(productEntity).orElseThrow(() ->
-                new NotFoundStockException(
+                new EntityNotFoundException(
                         String.format("Estoque do produto %s não encontrado", productEntity.getId())
                 )
         );
@@ -45,7 +44,7 @@ public class StockMovementService {
             case ENTRY -> stockEntity.setQuantity(stockEntity.getQuantity() + request.quantity());
             case EXIT, LOSS -> {
                 if (stockEntity.getQuantity() < request.quantity()) {
-                    throw new ConflictStockException(
+                    throw new EntityConflictException(
                             String.format("Estoque insuficiente. Disponível: %d, solicitado: %d",
                                     stockEntity.getQuantity(),
                                     request.quantity()

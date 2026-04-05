@@ -1,7 +1,5 @@
 package com.diego.lima.dev.startup.Stock.Controller;
 
-import com.diego.lima.dev.startup.Exceptions.Stock.ConflictStockException;
-import com.diego.lima.dev.startup.Exceptions.Stock.NotFoundStockException;
 import com.diego.lima.dev.startup.Stock.Dto.Request.CreateStockDTO;
 import com.diego.lima.dev.startup.Stock.Dto.Response.StockResponse;
 import com.diego.lima.dev.startup.Stock.Service.StockService;
@@ -25,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 
 @WebMvcTest(StockController.class)
 public class StockControllerTest {
@@ -97,7 +96,7 @@ public class StockControllerTest {
         @DisplayName("GET /stocks/{id} - deve retornar 404 quando estoque não encontrado")
         void shouldReturn404WhenStockNotFound() throws Exception {
             when(stockService.findStockById(99L))
-                    .thenThrow(new NotFoundStockException("Estoque do id: 99 não encontrado"));
+                    .thenThrow(new EntityNotFoundException("Estoque do id: 99 não encontrado"));
 
             mockMvc.perform(get("/stocks/{id}", 99L))
                     .andExpect(status().isNotFound())
@@ -147,7 +146,7 @@ public class StockControllerTest {
         @DisplayName("GET /stocks/product/{id} - deve retornar 404 quando estoque não encontrado")
         void shouldReturn404WhenStockByProductIdNotFound() throws Exception {
             when(stockService.findStockByProductId(99L))
-                    .thenThrow(new NotFoundStockException("Estoque do produto id: 99 não encontrado"));
+                    .thenThrow(new EntityNotFoundException("Estoque do produto id: 99 não encontrado"));
 
             mockMvc.perform(get("/stocks/product/{id}", 99L))
                     .andExpect(status().isNotFound())

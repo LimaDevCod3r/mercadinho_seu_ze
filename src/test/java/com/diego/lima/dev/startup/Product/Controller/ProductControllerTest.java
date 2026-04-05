@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.diego.lima.dev.startup.Exceptions.EntityNotFoundException;
 
 
 @WebMvcTest(ProductController.class)
@@ -145,7 +146,7 @@ public class ProductControllerTest {
         @DisplayName("GET /products/{id} - deve retornar 404 quando produto não encontrado")
         void shouldReturn404WhenProductNotFound() throws Exception {
             when(productService.findProductById(99L))
-                    .thenThrow(new com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException("Produto com id 99 não encontrado"));
+                    .thenThrow(new com.diego.lima.dev.startup.Exceptions.EntityNotFoundException("Produto com id 99 não encontrado"));
 
             mockMvc.perform(get("/products/{id}", 99L))
                     .andExpect(status().isNotFound())
@@ -180,7 +181,7 @@ public class ProductControllerTest {
                     {"name": "Test"}
                     """;
 
-            doThrow(new com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException("Produto com id 1 não encontrado"))
+            doThrow(new com.diego.lima.dev.startup.Exceptions.EntityNotFoundException("Produto com id 1 não encontrado"))
                     .when(productService).updateProduct(eq(1L), any(UpdateProductDTO.class));
 
             mockMvc.perform(patch("/products/{id}", 1L)
@@ -206,7 +207,7 @@ public class ProductControllerTest {
         @Test
         @DisplayName("DELETE /products/{id} - deve retornar 404 quando não encontrado")
         void shouldReturn404WhenDeletingNonExistentProduct() throws Exception {
-            doThrow(new com.diego.lima.dev.startup.Exceptions.Product.NotFoundProductException("Produto com id 1 não encontrado"))
+            doThrow(new com.diego.lima.dev.startup.Exceptions.EntityNotFoundException("Produto com id 1 não encontrado"))
                     .when(productService).deleteProduct(1L);
 
             mockMvc.perform(delete("/products/{id}", 1L))
